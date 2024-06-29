@@ -30,25 +30,21 @@ object CameraUtil {
 
     fun getCameraId(context: Context?): Int {
         val cameraIdProp = SystemProperties.get("ro.face.sense_service.camera_id")
-        if (cameraIdProp != null && cameraIdProp != "") {
+        if (cameraIdProp.isNotEmpty()) {
             return cameraIdProp.toInt()
         }
         try {
-            val cameraManager = context!!.getSystemService(
-                CameraManager::class.java
-            )
-            var cameraId: String
-            var orientation: Int
-            var characteristics: CameraCharacteristics
-            for (i in cameraManager!!.cameraIdList.indices) {
-                cameraId = cameraManager!!.cameraIdList[i]
-                characteristics = cameraManager!!.getCameraCharacteristics(cameraId)
-                orientation = characteristics.get(CameraCharacteristics.LENS_FACING)!!
+            val cameraManager = context?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            for (cameraId in cameraManager.cameraIdList) {
+                val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+                val orientation = characteristics.get(CameraCharacteristics.LENS_FACING)
                 if (orientation == CameraCharacteristics.LENS_FACING_FRONT) {
                     return cameraId.toInt()
                 }
             }
         } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        } catch (e: NumberFormatException) {
             e.printStackTrace()
         }
         return -1
